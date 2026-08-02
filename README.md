@@ -5,7 +5,6 @@
 **Нативная утилита для управления LCD-дисплеем СЖО ID-COOLING серии FX**
 
 [![.NET 8.0](https://img.shields.io/badge/.NET-8.0-512BD4?style=for-the-badge&logo=dotnet&logoColor=white)](https://dotnet.microsoft.com/)
-[![Platform](https://img.shields.io/badge/Platform-Windows-0078D4?style=for-the-badge&logo=windows&logoColor=white)]()
 
 <br />
 
