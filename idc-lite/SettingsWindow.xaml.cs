@@ -248,7 +248,10 @@ public partial class SettingsWindow : Window
     private void CloseButton_Click(object sender, RoutedEventArgs e)
     {
         SaveAll();
+        var left = Left;
+        var top = Top;
         Close();
+        _mainWindow.RestoreWindowBounds(left, top);
     }
 
     // ===== Hover effects =====

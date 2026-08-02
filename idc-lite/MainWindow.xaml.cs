@@ -468,6 +468,7 @@ public partial class MainWindow : Window
 
         _settingsWindow = new SettingsWindow(_settings, _settingsService, this);
         _settingsWindow.Closed += (_, _) => _settingsWindow = null;
+        this.Hide();
         _settingsWindow.Show();
     }
 
