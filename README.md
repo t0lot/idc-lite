@@ -54,6 +54,18 @@
   <img src="images/2.png" alt="Окно настроек IDC-Lite" width="650">
   <p><i>Окно настроек программы</i></p>
 </div>
+<div align="center">
+  <img src="images/3.png" alt="Окно настроек IDC-Lite" width="650">
+  <p><i>Окно настроек программы</i></p>
+</div>
+<div align="center">
+  <img src="images/4.png" alt="Окно настроек IDC-Lite" width="650">
+  <p><i>Окно настроек программы</i></p>
+</div>
+<div align="center">
+  <img src="images/5.png" alt="Окно настроек IDC-Lite" width="650">
+  <p><i>Окно настроек программы</i></p>
+</div>
 
 ---
 
