@@ -109,7 +109,7 @@
 
 ```bash
 # Клонировать репозиторий
-git clone [https://github.com/ваш-юзернейм/idc-lite.git](https://github.com/ваш-юзернейм/idc-lite.git)
+git clone [https://github.com/t0lot/idc-lite.git](https://github.com/t0lot/idc-lite.git)
 
 # Перейти в папку проекта
 cd idc-lite
