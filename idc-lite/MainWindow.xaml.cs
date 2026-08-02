@@ -21,7 +21,8 @@ public partial class MainWindow : Window
     private readonly DispatcherTimer _usageTimer;
 
     private bool _deviceConnected;
-    private SettingsWindow? _settingsWindow;
+    private bool _isSettingsMode;
+    private bool _initializing = true;
 
     // Кэшированные кисти — ОДИН объект на всё время жизни
     private static readonly WpfBrush BrushGreen  = new(WpfColor.FromRgb(0xa6, 0xe3, 0xa1));
@@ -105,6 +106,8 @@ public partial class MainWindow : Window
         _hardwareService.Open();
         TryConnectDevice();
         StartUpdateTimer();
+
+        _initializing = false;
 
         var args = Environment.GetCommandLineArgs();
         if (args.Contains("--minimized") && _settings.StartMinimized)
@@ -236,14 +239,11 @@ public partial class MainWindow : Window
 
         if (_animation == DisplayAnimation.Smooth)
         {
-            // Вся длительность интервала — плавно
-            // Для больших скачков (>15°) ускоряем в 2 раза
             double baseDuration = _settings.UpdateIntervalMs;
             _animDurationMs = diff > 15 ? baseDuration * 0.5 : baseDuration;
         }
         else // Roller — быстрая плавная прокрутка
         {
-            // 30мс на градус, минимум 100мс, максимум интервал
             _animDurationMs = Math.Max(100, Math.Min(_settings.UpdateIntervalMs, (double)diff * 30));
         }
 
@@ -266,7 +266,6 @@ public partial class MainWindow : Window
 
             if (elapsed >= _animDurationMs)
             {
-                // Анимация завершена — фиксируем целевое значение
                 _animTimer.Stop();
                 _displayedTemp = _targetTemp;
                 SetTemperatureDisplay(_displayedTemp);
@@ -274,7 +273,6 @@ public partial class MainWindow : Window
                 return;
             }
 
-            // Easing-интерполяция: плавное ускорение и замедление
             double progress = elapsed / _animDurationMs;
             double eased = EaseInOutCubic(progress);
             double current = _animStartTemp + (_targetTemp - _animStartTemp) * eased;
@@ -369,13 +367,52 @@ public partial class MainWindow : Window
         UpdateIntervalText.Text = TranslationService.Get(TranslationService.Keys.IntervalMs, _settings.UpdateIntervalMs);
     }
 
+    // ===== Локализация =====
+
     private void ApplyLanguage()
     {
         Title = TranslationService.Get(TranslationService.Keys.AppTitle);
         HeaderTitle.Text = TranslationService.Get(TranslationService.Keys.AppTitle);
+        SettingsHeaderTitle.Text = TranslationService.Get(TranslationService.Keys.Settings);
         VersionLabel.Text = TranslationService.Get(TranslationService.Keys.VersionInfo);
 
-        // Update status text and interval text with current language
+        // Settings labels
+        LanguageSectionLabel.Text = TranslationService.Get(TranslationService.Keys.LanguageSection);
+        LangRussian.Content = TranslationService.Get(TranslationService.Keys.LangRussian);
+        LangEnglish.Content = TranslationService.Get(TranslationService.Keys.LangEnglish);
+        LangChinese.Content = TranslationService.Get(TranslationService.Keys.LangChinese);
+
+        UpdateIntervalLabel.Text = TranslationService.Get(TranslationService.Keys.UpdateInterval);
+        AnimationLabel.Text = TranslationService.Get(TranslationService.Keys.AnimationSection);
+        AnimNone.Content = TranslationService.Get(TranslationService.Keys.AnimNone);
+        AnimSmooth.Content = TranslationService.Get(TranslationService.Keys.AnimSmooth);
+        AnimRoller.Content = TranslationService.Get(TranslationService.Keys.AnimRoller);
+        UpdateAnimDescription();
+        TempSourceLabel.Text = TranslationService.Get(TranslationService.Keys.TempSource);
+        TempSourceAuto.Content = TranslationService.Get(TranslationService.Keys.TempAuto);
+        TempSourceCoreAvg.Content = TranslationService.Get(TranslationService.Keys.TempCoreAvg);
+        TempSourceHotspot.Content = TranslationService.Get(TranslationService.Keys.TempHotspot);
+        TempSourcePackage.Content = TranslationService.Get(TranslationService.Keys.TempPackage);
+
+        SystemLabel.Text = TranslationService.Get(TranslationService.Keys.System);
+        AutoStartCheck.Content = TranslationService.Get(TranslationService.Keys.AutoStart);
+        MinimizeToTrayCheck.Content = TranslationService.Get(TranslationService.Keys.MinimizeToTray);
+        StartMinimizedCheck.Content = TranslationService.Get(TranslationService.Keys.StartMinimized);
+        HighPriorityCheck.Content = TranslationService.Get(TranslationService.Keys.HighPriority);
+
+        AppDescriptionLabel.Text = TranslationService.Get(TranslationService.Keys.AppDescription);
+
+        // Update interval text
+        if (IntervalValue != null)
+            IntervalValue.Text = TranslationService.Get(TranslationService.Keys.IntervalMs, _settings.UpdateIntervalMs);
+
+        try
+        {
+            AppDataPath.Text = TranslationService.Get(TranslationService.Keys.SettingsPath, SettingsService.GetAppDataPath());
+        }
+        catch { }
+
+        // Status text
         UpdateStatusUI();
     }
 
@@ -383,11 +420,11 @@ public partial class MainWindow : Window
     {
         StartUpdateTimer();
 
-        // Apply language changes (in case settings window changed it)
+        // Apply language changes
         TranslationService.SetLanguage(_settings.Language);
         ApplyLanguage();
 
-        // Apply animation mode + сброс
+        // Apply animation mode + reset
         _animation = _settings.DisplayAnimation;
         _tempHistory.Clear();
         _animTimer.Stop();
@@ -408,6 +445,167 @@ public partial class MainWindow : Window
         catch { }
     }
 
+    // ===== Настройки: загрузка/сохранение =====
+
+    private void LoadSettings()
+    {
+        _initializing = true;
+
+        // Language
+        LangRussian.IsChecked = _settings.Language == idc_lite.Models.Language.Russian;
+        LangEnglish.IsChecked = _settings.Language == idc_lite.Models.Language.English;
+        LangChinese.IsChecked = _settings.Language == idc_lite.Models.Language.Chinese;
+
+        if (IntervalSlider != null)
+            IntervalSlider.Value = _settings.UpdateIntervalMs;
+
+        if (AutoStartCheck != null)
+            AutoStartCheck.IsChecked = _settings.AutoStart;
+        if (MinimizeToTrayCheck != null)
+            MinimizeToTrayCheck.IsChecked = _settings.MinimizeToTray;
+        if (StartMinimizedCheck != null)
+            StartMinimizedCheck.IsChecked = _settings.StartMinimized;
+        if (HighPriorityCheck != null)
+            HighPriorityCheck.IsChecked = _settings.HighPriority;
+
+        // Animation
+        AnimNone.IsChecked     = _settings.DisplayAnimation == DisplayAnimation.None;
+        AnimSmooth.IsChecked   = _settings.DisplayAnimation == DisplayAnimation.Smooth;
+        AnimRoller.IsChecked   = _settings.DisplayAnimation == DisplayAnimation.Roller;
+
+        TempSourceAuto.IsChecked = _settings.TempSource == TemperatureSource.Auto;
+        TempSourceCoreAvg.IsChecked = _settings.TempSource == TemperatureSource.CoreAverage;
+        TempSourceHotspot.IsChecked = _settings.TempSource == TemperatureSource.Hotspot;
+        TempSourcePackage.IsChecked = _settings.TempSource == TemperatureSource.Package;
+
+        _initializing = false;
+    }
+
+    private void SaveAll()
+    {
+        if (_initializing) return;
+        _settingsService.Save(_settings);
+        ApplySettings();
+    }
+
+    // ===== Настройки: обработчики =====
+
+    private void Language_Changed(object sender, RoutedEventArgs e)
+    {
+        if (_initializing) return;
+
+        if (LangRussian.IsChecked == true) _settings.Language = idc_lite.Models.Language.Russian;
+        else if (LangEnglish.IsChecked == true) _settings.Language = idc_lite.Models.Language.English;
+        else if (LangChinese.IsChecked == true) _settings.Language = idc_lite.Models.Language.Chinese;
+
+        TranslationService.SetLanguage(_settings.Language);
+        SaveAll();
+        ApplyLanguage();
+    }
+
+    private void IntervalSlider_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
+    {
+        if (_initializing || IntervalValue == null) return;
+
+        var val = (int)e.NewValue;
+        _settings.UpdateIntervalMs = val;
+        IntervalValue.Text = TranslationService.Get(TranslationService.Keys.IntervalMs, val);
+        SaveAll();
+    }
+
+    private void AutoStartCheck_Changed(object sender, RoutedEventArgs e)
+    {
+        if (_initializing) return;
+        _settings.AutoStart = AutoStartCheck.IsChecked ?? false;
+        if (_settings.AutoStart)
+            AutostartService.Enable();
+        else
+            AutostartService.Disable();
+        SaveAll();
+    }
+
+    private void MinimizeToTrayCheck_Changed(object sender, RoutedEventArgs e)
+    {
+        if (_initializing) return;
+        _settings.MinimizeToTray = MinimizeToTrayCheck.IsChecked ?? true;
+        SaveAll();
+    }
+
+    private void StartMinimizedCheck_Changed(object sender, RoutedEventArgs e)
+    {
+        if (_initializing) return;
+        _settings.StartMinimized = StartMinimizedCheck.IsChecked ?? true;
+        SaveAll();
+    }
+
+    private void HighPriorityCheck_Changed(object sender, RoutedEventArgs e)
+    {
+        if (_initializing) return;
+        _settings.HighPriority = HighPriorityCheck.IsChecked ?? true;
+        SaveAll();
+    }
+
+    private void Anim_Changed(object sender, RoutedEventArgs e)
+    {
+        if (_initializing) return;
+
+        if (AnimNone.IsChecked == true) _settings.DisplayAnimation = DisplayAnimation.None;
+        else if (AnimSmooth.IsChecked == true) _settings.DisplayAnimation = DisplayAnimation.Smooth;
+        else if (AnimRoller.IsChecked == true) _settings.DisplayAnimation = DisplayAnimation.Roller;
+
+        UpdateAnimDescription();
+        SaveAll();
+    }
+
+    private void UpdateAnimDescription()
+    {
+        if (AnimDescription == null) return;
+
+        string key = _settings.DisplayAnimation switch
+        {
+            DisplayAnimation.Smooth => TranslationService.Keys.AnimSmoothDesc,
+            DisplayAnimation.Roller  => TranslationService.Keys.AnimRollerDesc,
+            _                          => TranslationService.Keys.AnimNoneDesc,
+        };
+
+        AnimDescription.Text = TranslationService.Get(key);
+    }
+
+    private void TempSource_Changed(object sender, RoutedEventArgs e)
+    {
+        if (_initializing) return;
+
+        if (TempSourceAuto.IsChecked == true) _settings.TempSource = TemperatureSource.Auto;
+        else if (TempSourceCoreAvg.IsChecked == true) _settings.TempSource = TemperatureSource.CoreAverage;
+        else if (TempSourceHotspot.IsChecked == true) _settings.TempSource = TemperatureSource.Hotspot;
+        else if (TempSourcePackage.IsChecked == true) _settings.TempSource = TemperatureSource.Package;
+
+        SaveAll();
+    }
+
+    // ===== Переключение панелей =====
+
+    private void ShowSettings()
+    {
+        _isSettingsMode = true;
+        MainHeader.Visibility = Visibility.Collapsed;
+        MainContent.Visibility = Visibility.Collapsed;
+        SettingsHeader.Visibility = Visibility.Visible;
+        SettingsContent.Visibility = Visibility.Visible;
+
+        LoadSettings();
+        ApplyLanguage();
+    }
+
+    private void ShowMain()
+    {
+        _isSettingsMode = false;
+        SettingsHeader.Visibility = Visibility.Collapsed;
+        SettingsContent.Visibility = Visibility.Collapsed;
+        MainHeader.Visibility = Visibility.Visible;
+        MainContent.Visibility = Visibility.Visible;
+    }
+
     // ===== Window Controls =====
 
     private void Window_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
@@ -417,8 +615,16 @@ public partial class MainWindow : Window
 
     private void CloseButton_Click(object sender, RoutedEventArgs e)
     {
-        // Всегда сворачиваем в трей при нажатии на крестик
-        Hide();
+        if (_isSettingsMode)
+        {
+            SaveAll();
+            ShowMain();
+        }
+        else
+        {
+            // Всегда сворачиваем в трей при нажатии на крестик
+            Hide();
+        }
     }
 
     private void WindowBtn_MouseEnter(object sender, System.Windows.Input.MouseEventArgs e)
@@ -451,40 +657,46 @@ public partial class MainWindow : Window
             path.Stroke = BrushGray;
     }
 
-    // ===== Окно настроек: заменяет главное на той же позиции =====
+    private void SettingsCloseBtn_MouseEnter(object sender, System.Windows.Input.MouseEventArgs e)
+    {
+        if (sender is System.Windows.Controls.Button btn && btn.Content is System.Windows.Shapes.Path path)
+            path.Stroke = BrushClsHov;
+    }
+
+    private void SettingsCloseBtn_MouseLeave(object sender, System.Windows.Input.MouseEventArgs e)
+    {
+        if (sender is System.Windows.Controls.Button btn && btn.Content is System.Windows.Shapes.Path path)
+            path.Stroke = BrushGray;
+    }
+
+    private void BackBtn_MouseEnter(object sender, System.Windows.Input.MouseEventArgs e)
+    {
+        if (BackBtn.Content is System.Windows.Shapes.Path path)
+            path.Stroke = BrushBtnHov;
+    }
+
+    private void BackBtn_MouseLeave(object sender, System.Windows.Input.MouseEventArgs e)
+    {
+        if (BackBtn.Content is System.Windows.Shapes.Path path)
+            path.Stroke = BrushGray;
+    }
+
+    private void BackButton_Click(object sender, RoutedEventArgs e)
+    {
+        SaveAll();
+        ShowMain();
+    }
+
+    // ===== Открытие настроек =====
 
     public void OpenSettings()
     {
-        SettingsButton_Click(this, new RoutedEventArgs());
+        if (!_isSettingsMode)
+            ShowSettings();
     }
 
     private void SettingsButton_Click(object sender, RoutedEventArgs e)
     {
-        if (_settingsWindow != null && _settingsWindow.IsVisible)
-        {
-            _settingsWindow.Activate();
-            return;
-        }
-
-        _settingsWindow = new SettingsWindow(_settings, _settingsService, this);
-        _settingsWindow.Closed += (_, _) => _settingsWindow = null;
-        this.Hide();
-        _settingsWindow.Show();
+        ShowSettings();
     }
-
-    /// <summary>Возвращает позицию/размер главного окна для оверлея настроек.</summary>
-    public Rect GetWindowBounds()
-    {
-        return new Rect(Left, Top, Width, Height);
-    }
-
-    /// <summary>Восстанавливает позицию/размер после закрытия настроек.</summary>
-    public void RestoreWindowBounds(double left, double top)
-    {
-        Left = left;
-        Top = top;
-        Show();
-        Activate();
-    }
-
-    }
+}
