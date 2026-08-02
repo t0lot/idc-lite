@@ -27,3 +27,6 @@ extract_asar.ps1
 # OS
 Thumbs.db
 .DS_Store
+
+# Release archives
+*.zip
