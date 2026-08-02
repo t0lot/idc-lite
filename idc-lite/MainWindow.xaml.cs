@@ -460,7 +460,7 @@ public partial class MainWindow : Window
             IntervalSlider.Value = _settings.UpdateIntervalMs;
 
         if (AutoStartCheck != null)
-            AutoStartCheck.IsChecked = _settings.AutoStart;
+            AutoStartCheck.IsChecked = AutostartService.IsEnabled();
         if (MinimizeToTrayCheck != null)
             MinimizeToTrayCheck.IsChecked = _settings.MinimizeToTray;
         if (StartMinimizedCheck != null)
@@ -516,11 +516,18 @@ public partial class MainWindow : Window
     private void AutoStartCheck_Changed(object sender, RoutedEventArgs e)
     {
         if (_initializing) return;
-        _settings.AutoStart = AutoStartCheck.IsChecked ?? false;
-        if (_settings.AutoStart)
+
+        bool enabled = AutoStartCheck.IsChecked ?? false;
+        _settings.AutoStart = enabled;
+
+        if (enabled)
             AutostartService.Enable();
         else
             AutostartService.Disable();
+
+        // Синхронизируем чекбокс с реальным результатом
+        AutoStartCheck.IsChecked = AutostartService.IsEnabled();
+
         SaveAll();
     }
 
@@ -588,10 +595,17 @@ public partial class MainWindow : Window
     private void ShowSettings()
     {
         _isSettingsMode = true;
+
+        // Скрываем главную панель
         MainHeader.Visibility = Visibility.Collapsed;
         MainContent.Visibility = Visibility.Collapsed;
+
+        // Показываем панель настроек
         SettingsHeader.Visibility = Visibility.Visible;
         SettingsContent.Visibility = Visibility.Visible;
+
+        // Принудительный layout — гарантирует видимость
+        UpdateLayout();
 
         LoadSettings();
         ApplyLanguage();
@@ -600,10 +614,17 @@ public partial class MainWindow : Window
     private void ShowMain()
     {
         _isSettingsMode = false;
+
+        // Скрываем панель настроек
         SettingsHeader.Visibility = Visibility.Collapsed;
         SettingsContent.Visibility = Visibility.Collapsed;
+
+        // Показываем главную панель
         MainHeader.Visibility = Visibility.Visible;
         MainContent.Visibility = Visibility.Visible;
+
+        // Принудительный layout
+        UpdateLayout();
     }
 
     // ===== Window Controls =====
