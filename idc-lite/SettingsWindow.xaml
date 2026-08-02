@@ -1,0 +1,342 @@
+<Window x:Class="idc_lite.SettingsWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Settings"
+        Height="300" Width="400"
+        WindowStartupLocation="Manual"
+        WindowStyle="None"
+        AllowsTransparency="True"
+        ResizeMode="NoResize"
+        BorderThickness="0"
+        Background="Transparent"
+        Icon="pack://application:,,,/logo.png"
+        MouseLeftButtonDown="Window_MouseLeftButtonDown">
+
+    <Window.Resources>
+        <Geometry x:Key="IconClose">M6 6 L18 18 M18 6 L6 18</Geometry>
+        <Geometry x:Key="IconBack">M14 5 L7 12 L14 19</Geometry>
+    </Window.Resources>
+
+    <!-- Rounded border with shadow -->
+    <Border Background="#1e1e2e"
+            CornerRadius="12"
+            Margin="8">
+        <Border.Effect>
+            <DropShadowEffect BlurRadius="16"
+                              ShadowDepth="0"
+                              Color="Black"
+                              Opacity="0.5"/>
+        </Border.Effect>
+
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="38"/>
+                <RowDefinition Height="*"/>
+            </Grid.RowDefinitions>
+
+            <!-- ===== HEADER ===== -->
+            <Border Grid.Row="0"
+                    Background="#181825"
+                    CornerRadius="12,12,0,0"
+                    MouseLeftButtonDown="Window_MouseLeftButtonDown">
+                <Grid>
+                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                        <Button x:Name="BackBtn"
+                                Width="34" Height="38"
+                                Background="Transparent"
+                                BorderThickness="0"
+                                Cursor="Hand"
+                                Click="BackButton_Click"
+                                MouseEnter="BackBtn_MouseEnter"
+                                MouseLeave="BackBtn_MouseLeave">
+                            <Path Data="{StaticResource IconBack}"
+                                  Stroke="#6c7086"
+                                  StrokeThickness="1.5"
+                                  Stretch="Uniform"
+                                  Width="14" Height="14"
+                                  HorizontalAlignment="Center"
+                                  VerticalAlignment="Center"/>
+                        </Button>
+                        <TextBlock x:Name="HeaderTitle"
+                                   Text="Settings"
+                                   Foreground="#89b4fa"
+                                   FontSize="12"
+                                   FontWeight="SemiBold"
+                                   FontFamily="Segoe UI"
+                                   VerticalAlignment="Center"/>
+                    </StackPanel>
+
+                    <Button Width="44" Height="38"
+                            Background="Transparent"
+                            BorderThickness="0"
+                            Cursor="Hand"
+                            HorizontalAlignment="Right"
+                            Click="CloseButton_Click"
+                            MouseEnter="CloseBtn_MouseEnter"
+                            MouseLeave="CloseBtn_MouseLeave">
+                        <Path Data="{StaticResource IconClose}"
+                              Stroke="#6c7086"
+                              StrokeThickness="1.5"
+                              Stretch="Uniform"
+                              Width="14" Height="14"
+                              HorizontalAlignment="Center"
+                              VerticalAlignment="Center"/>
+                    </Button>
+                </Grid>
+            </Border>
+
+            <!-- ===== SCROLLABLE CONTENT ===== -->
+            <ScrollViewer Grid.Row="1"
+                          x:Name="SettingsScroll"
+                          Background="Transparent"
+                          VerticalScrollBarVisibility="Hidden"
+                          HorizontalScrollBarVisibility="Disabled"
+                          CanContentScroll="False"
+                          Padding="0">
+                <StackPanel Margin="24,12,24,20">
+
+                    <!-- Language -->
+                    <TextBlock x:Name="LanguageSectionLabel"
+                               Text="LANGUAGE"
+                               Foreground="#6c7086"
+                               FontSize="10"
+                               FontWeight="SemiBold"
+                               FontFamily="Segoe UI"
+                               Margin="0,0,0,10"/>
+
+                    <Border Background="#181825" CornerRadius="10" Padding="16,12">
+                        <StackPanel>
+                            <RadioButton x:Name="LangRussian"
+                                         Content="Русский"
+                                         Foreground="#cdd6f4"
+                                         FontSize="12"
+                                         FontFamily="Segoe UI"
+                                         Margin="0,3"
+                                         GroupName="Language"
+                                         IsChecked="True"
+                                         Checked="Language_Changed"/>
+                            <RadioButton x:Name="LangEnglish"
+                                         Content="English"
+                                         Foreground="#cdd6f4"
+                                         FontSize="12"
+                                         FontFamily="Segoe UI"
+                                         Margin="0,3"
+                                         GroupName="Language"
+                                         Checked="Language_Changed"/>
+                            <RadioButton x:Name="LangChinese"
+                                         Content="中文"
+                                         Foreground="#cdd6f4"
+                                         FontSize="12"
+                                         FontFamily="Segoe UI"
+                                         Margin="0,3"
+                                         GroupName="Language"
+                                         Checked="Language_Changed"/>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- Update Interval -->
+                    <TextBlock x:Name="UpdateIntervalLabel"
+                               Text="UPDATE INTERVAL"
+                               Foreground="#6c7086"
+                               FontSize="10"
+                               FontWeight="SemiBold"
+                               FontFamily="Segoe UI"
+                               Margin="0,20,0,10"/>
+
+                    <Border Background="#181825" CornerRadius="10" Padding="16,14">
+                        <StackPanel>
+                            <Slider x:Name="IntervalSlider"
+                                    Minimum="100"
+                                    Maximum="5000"
+                                    Value="1000"
+                                    TickFrequency="100"
+                                    IsSnapToTickEnabled="True"
+                                    Foreground="#89b4fa"
+                                    Background="#313244"
+                                    ValueChanged="IntervalSlider_ValueChanged"/>
+
+                            <Border Background="#313244" CornerRadius="6" Padding="10,6" Margin="0,8,0,0">
+                                <TextBlock x:Name="IntervalValue"
+                                           Text="1000 ms"
+                                           Foreground="#cdd6f4"
+                                           FontSize="14"
+                                           FontWeight="SemiBold"
+                                           FontFamily="Segoe UI"
+                                           HorizontalAlignment="Center"/>
+                            </Border>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- Animation -->
+                    <TextBlock x:Name="AnimationLabel"
+                               Text="DISPLAY ANIMATION"
+                               Foreground="#6c7086"
+                               FontSize="10"
+                               FontWeight="SemiBold"
+                               FontFamily="Segoe UI"
+                               Margin="0,20,0,10"/>
+
+                    <Border Background="#181825" CornerRadius="10" Padding="16,12">
+                        <StackPanel>
+                            <RadioButton x:Name="AnimNone"
+                                         Content="None"
+                                         Foreground="#cdd6f4"
+                                         FontSize="12"
+                                         FontFamily="Segoe UI"
+                                         Margin="0,3"
+                                         GroupName="Animation"
+                                         IsChecked="True"
+                                         Checked="Anim_Changed"/>
+                            <RadioButton x:Name="AnimSmooth"
+                                         Content="Smooth"
+                                         Foreground="#cdd6f4"
+                                         FontSize="12"
+                                         FontFamily="Segoe UI"
+                                         Margin="0,3"
+                                         GroupName="Animation"
+                                         Checked="Anim_Changed"/>
+                            <RadioButton x:Name="AnimRoller"
+                                         Content="Roller"
+                                         Foreground="#cdd6f4"
+                                         FontSize="12"
+                                         FontFamily="Segoe UI"
+                                         Margin="0,3"
+                                         GroupName="Animation"
+                                         Checked="Anim_Changed"/>
+                            <TextBlock x:Name="AnimDescription"
+                                       Text=""
+                                       Foreground="#585b70"
+                                       FontSize="10"
+                                       FontFamily="Segoe UI"
+                                       Margin="0,8,0,0"
+                                       TextWrapping="Wrap"/>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- Temperature Source -->
+                    <TextBlock x:Name="TempSourceLabel"
+                               Text="TEMPERATURE SOURCE"
+                               Foreground="#6c7086"
+                               FontSize="10"
+                               FontWeight="SemiBold"
+                               FontFamily="Segoe UI"
+                               Margin="0,20,0,10"/>
+
+                    <Border Background="#181825" CornerRadius="10" Padding="16,12">
+                        <StackPanel>
+                            <RadioButton x:Name="TempSourceAuto"
+                                         Content="Auto (recommended)"
+                                         Foreground="#cdd6f4"
+                                         FontSize="12"
+                                         FontFamily="Segoe UI"
+                                         Margin="0,3"
+                                         GroupName="TempSource"
+                                         IsChecked="True"
+                                         Checked="TempSource_Changed"/>
+                            <RadioButton x:Name="TempSourceCoreAvg"
+                                         Content="Core average"
+                                         Foreground="#cdd6f4"
+                                         FontSize="12"
+                                         FontFamily="Segoe UI"
+                                         Margin="0,3"
+                                         GroupName="TempSource"
+                                         Checked="TempSource_Changed"/>
+                            <RadioButton x:Name="TempSourceHotspot"
+                                         Content="Hotspot (hottest)"
+                                         Foreground="#cdd6f4"
+                                         FontSize="12"
+                                         FontFamily="Segoe UI"
+                                         Margin="0,3"
+                                         GroupName="TempSource"
+                                         Checked="TempSource_Changed"/>
+                            <RadioButton x:Name="TempSourcePackage"
+                                         Content="CPU Package"
+                                         Foreground="#cdd6f4"
+                                         FontSize="12"
+                                         FontFamily="Segoe UI"
+                                         Margin="0,3"
+                                         GroupName="TempSource"
+                                         Checked="TempSource_Changed"/>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- System -->
+                    <TextBlock x:Name="SystemLabel"
+                               Text="SYSTEM"
+                               Foreground="#6c7086"
+                               FontSize="10"
+                               FontWeight="SemiBold"
+                               FontFamily="Segoe UI"
+                               Margin="0,20,0,10"/>
+
+                    <Border Background="#181825" CornerRadius="10" Padding="16,12">
+                        <StackPanel>
+                            <CheckBox x:Name="AutoStartCheck"
+                                      Content="Launch with Windows"
+                                      Foreground="#cdd6f4"
+                                      FontSize="12"
+                                      FontFamily="Segoe UI"
+                                      Margin="0,4"
+                                      Checked="AutoStartCheck_Changed"
+                                      Unchecked="AutoStartCheck_Changed"/>
+
+                            <CheckBox x:Name="MinimizeToTrayCheck"
+                                      Content="Minimize to tray on close"
+                                      Foreground="#cdd6f4"
+                                      FontSize="12"
+                                      FontFamily="Segoe UI"
+                                      Margin="0,4"
+                                      IsChecked="True"
+                                      Checked="MinimizeToTrayCheck_Changed"
+                                      Unchecked="MinimizeToTrayCheck_Changed"/>
+
+                            <CheckBox x:Name="StartMinimizedCheck"
+                                      Content="Start minimized to tray"
+                                      Foreground="#cdd6f4"
+                                      FontSize="12"
+                                      FontFamily="Segoe UI"
+                                      Margin="0,4"
+                                      IsChecked="True"
+                                      Checked="StartMinimizedCheck_Changed"
+                                      Unchecked="StartMinimizedCheck_Changed"/>
+
+                            <CheckBox x:Name="HighPriorityCheck"
+                                      Content="High process priority"
+                                      Foreground="#cdd6f4"
+                                      FontSize="12"
+                                      FontFamily="Segoe UI"
+                                      Margin="0,4"
+                                      IsChecked="True"
+                                      Checked="HighPriorityCheck_Changed"
+                                      Unchecked="HighPriorityCheck_Changed"/>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- Version -->
+                    <Border Background="#181825" CornerRadius="10" Padding="16,12" Margin="0,20,0,0">
+                        <StackPanel>
+                            <TextBlock x:Name="VersionLabel"
+                                       Text="IDC-Lite v1.0"
+                                       Foreground="#a6adc8"
+                                       FontSize="11"
+                                       FontFamily="Segoe UI"/>
+                            <TextBlock x:Name="AppDescriptionLabel"
+                                       Text="CPU monitoring for USB HID LCD displays"
+                                       Foreground="#585b70"
+                                       FontSize="10"
+                                       FontFamily="Segoe UI"
+                                       Margin="0,4,0,0"/>
+                            <TextBlock x:Name="AppDataPath"
+                                       Foreground="#45475a"
+                                       FontSize="10"
+                                       FontFamily="Segoe UI"
+                                       Margin="0,4,0,0"
+                                       TextWrapping="Wrap"/>
+                        </StackPanel>
+                    </Border>
+
+                </StackPanel>
+            </ScrollViewer>
+        </Grid>
+    </Border>
+</Window>

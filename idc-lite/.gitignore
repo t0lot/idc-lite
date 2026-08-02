@@ -1,0 +1,27 @@
+## Исходное приложение (НЕ публикуем!)
+ID-COOLING/
+
+## Опубликованные бинарники
+publish/
+*.exe
+*.dll
+*.pdb
+*.cache
+
+## .NET
+idc-lite/bin/
+idc-lite/obj/
+
+## Visual Studio
+.vs/
+*.user
+*.userprefs
+*.suo
+*.vspx
+
+## OS files
+Thumbs.db
+.DS_Store
+
+## Logs
+*.log

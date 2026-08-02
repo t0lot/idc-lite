@@ -1,0 +1,20 @@
+# Third-Party Licenses
+
+This project uses the following third-party libraries:
+
+## LibreHardwareMonitorLib
+- License: Mozilla Public License 2.0 (MPL 2.0)
+- Source: https://github.com/LibreHardwareMonitor/LibreHardwareMonitor
+- Used as NuGet package (no source modifications)
+
+## HidSharp (transitive via LibreHardwareMonitorLib)
+- License: MIT
+- Source: https://github.com/ubisoft/HidSharp
+
+## .NET 8 Runtime
+- License: MIT
+- Source: https://github.com/dotnet/runtime
+
+## Catppuccin (color palette)
+- License: MIT
+- Source: https://github.com/catppuccin/catppuccin

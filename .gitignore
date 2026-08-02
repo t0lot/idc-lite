@@ -1,0 +1,29 @@
+# Build output
+bin/
+obj/
+publish/
+*.exe
+*.dll
+*.pdb
+*.deps.json
+*.runtimeconfig.json
+
+# AiderDesk
+.aider-desk/
+.aider.input.history
+
+# Reverse engineering scratch files
+extracted_*.js
+extracted_*.mjs
+find_*.ps1
+extract_asar.ps1
+
+# IDE
+.vs/
+.vscode/
+*.user
+*.suo
+
+# OS
+Thumbs.db
+.DS_Store
