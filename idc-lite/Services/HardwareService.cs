@@ -53,6 +53,10 @@ public sealed class HardwareService : IDisposable
         {
             try
             {
+                // Извлекаем драйвер WinRing0x64.sys в AppData до загрузки
+                var appDataPath = SettingsService.GetAppDataPath();
+                DriverService.EnsureDriverExtracted(appDataPath);
+
                 _computer.Open();
                 _isOpen = true;
             }
