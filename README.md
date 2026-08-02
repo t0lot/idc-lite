@@ -94,7 +94,7 @@
 Утилита заточена под VID/PID `1A86:E317` и байты протокола `0x55`, `0xBB`.  
 Если у вас другая водянка с HID-дисплеем, вы можете легко адаптировать код:
 1. Снимите дампы USB-трафика через Wireshark / USBPcap.
-2. Измените константы в файле [`Services/HidService.cs`](Services/HidService.cs).
+2. Измените константы в файле [`Services/HidService.cs`](https://github.com/t0lot/idc-lite/blob/main/idc-lite/Services/HidService.cs).
 
 </details>
 
