@@ -53,12 +53,16 @@ public sealed class HardwareService : IDisposable
         {
             try
             {
-                // Извлекаем драйвер WinRing0x64.sys в AppData до загрузки
                 var appDataPath = SettingsService.GetAppDataPath();
+
+                // Предварительно извлекаем WinRing0x64.sys в AppData
                 DriverService.EnsureDriverExtracted(appDataPath);
 
                 _computer.Open();
                 _isOpen = true;
+
+                // LHM создал idc-lite.sys в папке с exe → перемещаем в AppData
+                DriverService.MoveDriverToAppData(appDataPath);
             }
             catch
             {
@@ -264,6 +268,9 @@ public sealed class HardwareService : IDisposable
         {
             try { _computer.Close(); } catch { }
             _isOpen = false;
+
+            // После остановки драйвера — удаляем .sys из папки exe
+            DriverService.RemoveDriverFromExeDir();
         }
     }
 
