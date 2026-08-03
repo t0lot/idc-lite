@@ -76,7 +76,7 @@ public static class TranslationService
         [Keys.StatusConnected] = ("Дисплей подключён", "Display connected", "显示屏已连接"),
         [Keys.StatusNotFound]  = ("Устройство не найдено", "Device not found", "未找到设备"),
         [Keys.Celsius]          = ("°C", "°C", "°C"),
-        [Keys.VersionInfo]      = ("IDC-Lite v1.1", "IDC-Lite v1.1", "IDC-Lite v1.1"),
+        [Keys.VersionInfo]      = ("IDC-Lite v1.2", "IDC-Lite v1.2", "IDC-Lite v1.2"),
         [Keys.IntervalMs]       = ("{0} мс", "{0} ms", "{0} 毫秒"),
 
         // SettingsWindow

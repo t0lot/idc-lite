@@ -206,7 +206,7 @@
 
                         <TextBlock Grid.Column="0"
                                    x:Name="VersionLabel"
-                                   Text="IDC-Lite v1.1"
+                                   Text="IDC-Lite v1.2"
                                    Foreground="#45475a"
                                    FontSize="10"
                                    FontFamily="Segoe UI"
@@ -455,7 +455,7 @@
                     <Border Background="#181825" CornerRadius="10" Padding="16,12" Margin="0,20,0,0">
                         <StackPanel>
                             <TextBlock x:Name="SettingsVersionLabel"
-                                       Text="IDC-Lite v1.1"
+                                       Text="IDC-Lite v1.2"
                                        Foreground="#a6adc8"
                                        FontSize="11"
                                        FontFamily="Segoe UI"/>
