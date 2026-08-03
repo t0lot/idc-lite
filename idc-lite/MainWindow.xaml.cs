@@ -109,8 +109,10 @@ public partial class MainWindow : Window
 
         _initializing = false;
 
+        // --minimized передаётся только при автозапуске через Task Scheduler.
+        // Обычный запуск (exe) всегда показывает окно.
         var args = Environment.GetCommandLineArgs();
-        if (args.Contains("--minimized") && _settings.StartMinimized)
+        if (args.Contains("--minimized"))
         {
             Hide();
         }

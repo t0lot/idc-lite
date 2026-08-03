@@ -78,6 +78,7 @@ public static class TaskSchedulerService
     /// Удаляет задачу автозапуска.
     /// </summary>
     public static bool DeleteTask()
+   
     {
         try
         {
