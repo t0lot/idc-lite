@@ -1,0 +1,8 @@
+Package: idc-daemon
+Version: 2.0.0
+Section: utils
+Priority: optional
+Architecture: amd64
+Maintainer: t0lot <t0lot@github.com>
+Description: Lightweight background daemon for ID-COOLING FX LCD coolers
+ Fast, native, driverless telemetry display daemon for Linux.

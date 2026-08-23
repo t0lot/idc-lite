@@ -16,21 +16,62 @@ public static class LinuxHardwareService
     {
         try
         {
-            var hwmonDirs = Directory.GetDirectories("/sys/class/hwmon");
-            foreach (var dir in hwmonDirs)
+            if (Directory.Exists("/sys/class/hwmon"))
             {
-                var namePath = Path.Combine(dir, "name");
-                string? name = File.Exists(namePath) ? File.ReadAllText(namePath).Trim() : null;
-
-                // k10temp (AMD), coretemp (Intel), zenpower, acpitz
-                var tempInputs = Directory.GetFiles(dir, "temp*_input");
-                foreach (var tempFile in tempInputs)
+                var hwmonDirs = Directory.GetDirectories("/sys/class/hwmon");
+                
+                // Приоритетные имена драйверов CPU в ядре Linux
+                string[] preferredCpuDrivers = ["coretemp", "k10temp", "zenpower", "cpu_thermal", "soc_thermal", "acpitz"];
+                
+                string? bestHwmonDir = null;
+                foreach (var dir in hwmonDirs)
                 {
-                    if (int.TryParse(File.ReadAllText(tempFile).Trim(), out int millidegrees) && millidegrees > 0)
+                    var namePath = Path.Combine(dir, "name");
+                    if (File.Exists(namePath))
                     {
-                        float c = millidegrees / 1000.0f;
-                        if (c is >= 10 and <= 125)
-                            return c;
+                        var driverName = File.ReadAllText(namePath).Trim();
+                        if (preferredCpuDrivers.Any(p => driverName.Contains(p, StringComparison.OrdinalIgnoreCase)))
+                        {
+                            bestHwmonDir = dir;
+                            break;
+                        }
+                    }
+                }
+
+                var dirsToScan = bestHwmonDir != null 
+                    ? new[] { bestHwmonDir }.Concat(hwmonDirs.Where(d => d != bestHwmonDir))
+                    : hwmonDirs;
+
+                foreach (var dir in dirsToScan)
+                {
+                    var tempInputs = Directory.GetFiles(dir, "temp*_input");
+                    foreach (var tempFile in tempInputs)
+                    {
+                        var labelFile = tempFile.Replace("_input", "_label");
+                        // Если есть метка (Tdie, Tctl, Package id 0, CPU), отдаем приоритет
+                        if (File.Exists(labelFile))
+                        {
+                            var label = File.ReadAllText(labelFile).Trim();
+                            if (label.Contains("Tdie", StringComparison.OrdinalIgnoreCase) || 
+                                label.Contains("Package", StringComparison.OrdinalIgnoreCase) ||
+                                label.Contains("CPU", StringComparison.OrdinalIgnoreCase) ||
+                                label.Contains("Tctl", StringComparison.OrdinalIgnoreCase))
+                            {
+                                if (int.TryParse(File.ReadAllText(tempFile).Trim(), out int val) && val > 0)
+                                {
+                                    float c = val > 1000 ? val / 1000.0f : val;
+                                    if (c is >= 10 and <= 125)
+                                        return c;
+                                }
+                            }
+                        }
+
+                        if (int.TryParse(File.ReadAllText(tempFile).Trim(), out int millidegrees) && millidegrees > 0)
+                        {
+                            float c = millidegrees > 1000 ? millidegrees / 1000.0f : millidegrees;
+                            if (c is >= 10 and <= 125)
+                                return c;
+                        }
                     }
                 }
             }
@@ -41,10 +82,12 @@ public static class LinuxHardwareService
                 var zones = Directory.GetDirectories("/sys/class/thermal", "thermal_zone*");
                 foreach (var zone in zones)
                 {
+                    var typePath = Path.Combine(zone, "type");
                     var tempPath = Path.Combine(zone, "temp");
+                    
                     if (File.Exists(tempPath) && int.TryParse(File.ReadAllText(tempPath).Trim(), out int millidegrees))
                     {
-                        float c = millidegrees / 1000.0f;
+                        float c = millidegrees > 1000 ? millidegrees / 1000.0f : millidegrees;
                         if (c is >= 10 and <= 125)
                             return c;
                     }
