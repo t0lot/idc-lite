@@ -9,6 +9,10 @@ dist/
 *.deps.json
 *.runtimeconfig.json
 
+# Temp
+release_notes.txt
+login.txt
+
 # AiderDesk
 .aider-desk/
 .aider.input.history
