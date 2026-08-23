@@ -8,6 +8,7 @@ namespace idc_lite;
 public partial class App : System.Windows.Application
 {
     private System.Windows.Forms.NotifyIcon? _trayIcon;
+    private IntPtr _hIcon = IntPtr.Zero;
     private MainWindow? _mainWindow;
     private HidService? _hidService;
     private HardwareService? _hardwareService;
@@ -79,8 +80,8 @@ public partial class App : System.Windows.Application
                 using var ms = new System.IO.MemoryStream();
                 resInfo.Stream.CopyTo(ms);
                 using var bmp = new System.Drawing.Bitmap(ms);
-                var hIcon = bmp.GetHicon();
-                _trayIcon.Icon = System.Drawing.Icon.FromHandle(hIcon);
+                _hIcon = bmp.GetHicon();
+                _trayIcon.Icon = System.Drawing.Icon.FromHandle(_hIcon);
             }
         }
         catch { }
@@ -182,8 +183,15 @@ public partial class App : System.Windows.Application
         if (_trayIcon != null)
         {
             _trayIcon.Visible = false;
+            _trayIcon.ContextMenuStrip?.Dispose();
             _trayIcon.Dispose();
             _trayIcon = null;
+        }
+
+        if (_hIcon != IntPtr.Zero)
+        {
+            try { NativeMethods.DestroyIcon(_hIcon); } catch { }
+            _hIcon = IntPtr.Zero;
         }
     }
 
@@ -247,4 +255,7 @@ internal static class NativeMethods
 {
     [System.Runtime.InteropServices.DllImport("user32.dll")]
     internal static extern bool SetForegroundWindow(IntPtr hWnd);
+
+    [System.Runtime.InteropServices.DllImport("user32.dll", SetLastError = true)]
+    internal static extern bool DestroyIcon(IntPtr hIcon);
 }

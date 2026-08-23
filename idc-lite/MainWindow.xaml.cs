@@ -91,7 +91,36 @@ public partial class MainWindow : Window
 
         Loaded += OnLoaded;
         Closing += OnClosing;
+        IsVisibleChanged += OnIsVisibleChanged;
     }
+
+    private void OnIsVisibleChanged(object sender, DependencyPropertyChangedEventArgs e)
+    {
+        if (!IsVisible)
+        {
+            TrimWorkingSet();
+        }
+    }
+
+    public static void TrimWorkingSet()
+    {
+        try
+        {
+            GC.Collect(2, GCCollectionMode.Aggressive, true, true);
+            GC.WaitForPendingFinalizers();
+            GC.Collect(2, GCCollectionMode.Aggressive, true, true);
+
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            {
+                using var currentProc = Process.GetCurrentProcess();
+                SetProcessWorkingSetSize(currentProc.Handle, -1, -1);
+            }
+        }
+        catch { }
+    }
+
+    [DllImport("kernel32.dll")]
+    private static extern bool SetProcessWorkingSetSize(IntPtr procHandle, int min, int max);
 
     public static MainWindow? GetInstance() => _instance?.TryGetTarget(out var w) == true ? w : null;
 
@@ -315,8 +344,13 @@ public partial class MainWindow : Window
     {
         if (!_deviceConnected) return;
         if (_lastSentTemp.HasValue && _lastSentTemp.Value == tempC) return;
+        if (!_hidService.SendTemperature(tempC))
+        {
+            _deviceConnected = false;
+            UpdateStatusUI();
+            return;
+        }
         _lastSentTemp = tempC;
-        _hidService.SendTemperature(tempC);
     }
 
     private void SendFrequencyToDisplay()
@@ -331,8 +365,13 @@ public partial class MainWindow : Window
         if (_lastSentFreq.HasValue && _lastSentFreq.Value == freqMHz)
             return;
 
+        if (!_hidService.SendFrequency(freqMHz))
+        {
+            _deviceConnected = false;
+            UpdateStatusUI();
+            return;
+        }
         _lastSentFreq = freqMHz;
-        _hidService.SendFrequency(freqMHz);
     }
 
     private void SendUsageToDisplay()
@@ -347,8 +386,13 @@ public partial class MainWindow : Window
         if (_lastSentUsage.HasValue && _lastSentUsage.Value == usage)
             return;
 
+        if (!_hidService.SendUsage(usage))
+        {
+            _deviceConnected = false;
+            UpdateStatusUI();
+            return;
+        }
         _lastSentUsage = usage;
-        _hidService.SendUsage(usage);
     }
 
     // ===== UI Status =====

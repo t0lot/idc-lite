@@ -173,7 +173,14 @@ public sealed class HidService : IDisposable
             out uint written,
             IntPtr.Zero);  // Синхронный режим
 
-        return result && written == buffer.Length;
+        if (!result || written != buffer.Length)
+        {
+            // При аппаратном сбое записи сбрасываем дескриптор для последующего переподключения
+            CloseDevice();
+            return false;
+        }
+
+        return true;
     }
 
     // ===== Convenience methods =====

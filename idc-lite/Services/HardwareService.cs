@@ -239,7 +239,7 @@ public sealed class HardwareService : IDisposable
         };
     }
 
-            private static float? GetTemperatureWmi()
+    private static float? GetTemperatureWmi()
     {
         try
         {
